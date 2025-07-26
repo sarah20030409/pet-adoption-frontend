@@ -1,168 +1,313 @@
-import React,{useState,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import BackBtn from "../backBtn/backBtn";
 import Loading from "../../global/Loading/Loading";
 import "./moreInfo.css";
 import axios from "axios";
 
-
 export default function MorePage() {
-
-    return (
-        <div className="More_Page">
-        <div className="Layout">
-            <div className="More_backBtn">
-                <BackBtn path={'/adopt'} morePid={true} />
-            </div>
-            <div className="Left_Info">
-                <Left_Info/>
-            </div>
-
-            <div className="Right_Comments">
-                <Right_Comments/>
-            </div>
+  return (
+    <div className="More_Page">
+      <div className="Layout">
+        <div className="More_backBtn">
+          <BackBtn path={"/adopt"} morePid={true} />
         </div>
+        <div className="Left_Info">
+          <Left_Info />
         </div>
-    )
+
+        <div className="Right_Comments">
+          <Right_Comments />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function Left_Info() {
-    const morePid = localStorage.getItem('morePid');
-    const [mPetInfo,setmPetInfo] = useState([]);
-    const [loading,setLoading] = useState(true);
+  const morePid = localStorage.getItem("morePid");
+  const [mPetInfo, setmPetInfo] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-
-    async function getCurrnetPid(){
-        try{
-            const response = await axios.get(`http://localhost:5000/currentPet/${morePid}`);
-            setmPetInfo(response.data[0]);
-        }
-        catch(error){
-            console.error("There was an error fetching the pet card data!", error);
-        }
-        finally{
-            setLoading(false);
-        }
+  async function getCurrnetPid() {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/currentPet/${morePid}`
+      );
+      setmPetInfo(response.data[0]);
+    } catch (error) {
+      console.error("There was an error fetching the pet card data!", error);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    useEffect(() => {
-        getCurrnetPid();
-    }, []);
+  useEffect(() => {
+    getCurrnetPid();
+  }, []);
 
-    return(
-        <div className="Info">
-        {loading ? <Loading /> :
+  return (
+    <div className="Info">
+      {loading ? (
+        <Loading />
+      ) : (
         <>
-            <p className="name">{mPetInfo.name}</p>
-            <div className="imgOutFrame">
+          <p className="name">{mPetInfo.name}</p>
+          <div className="imgOutFrame">
             {/* <img className="InfoImg" src={SampleImg} /> */}
-            <img className="InfoImg" src={`http://localhost:5000/${mPetInfo.petImage}`} />
-            </div>
-            <div className="InfoText">
-            <p className="age"><span className="bold">Age:</span>{mPetInfo.age} years old</p>
-            <p className="variety"><span className="bold">Variety:</span>{mPetInfo.variety}</p>
+            <img
+              className="InfoImg"
+              src={`http://localhost:5000/${mPetInfo.petImage}`}
+              alt={mPetInfo.name}
+            />
+          </div>
+          <div className="InfoText">
+            <p className="age">
+              <span className="bold">Age:</span>
+              {mPetInfo.age} years old
+            </p>
+            <p className="variety">
+              <span className="bold">Variety:</span>
+              {mPetInfo.variety}
+            </p>
 
             <div className="infoTxt">
-            <p className="info_Title"><span className="bold">information:</span></p>
-            <p className="info">{mPetInfo.information}</p>
+              <p className="info_Title">
+                <span className="bold">information:</span>
+              </p>
+              <p className="info">{mPetInfo.information}</p>
             </div>
-            </div>
+          </div>
         </>
-        }
-        </div>
-    );
+      )}
+    </div>
+  );
 }
 
-
-
 export function Right_Comments() {
-    return(
-        <div className="comments">
-            <div className="comments_Title">
-                <h1>User's Comments</h1>
-            </div>
+  return (
+    <div className="comments">
+      <div className="comments_Title">
+        <h1>User's Comments</h1>
+      </div>
 
-            <div className="AllComments">
-                <CommentBlock />
-            </div>
+      <div className="AllComments">
+        <CommentBlock />
+      </div>
 
-            <div className="CommentText">
-                <CommentTextarea />
-            </div>
-        </div>
-    );
+      <div className="CommentText">
+        <CommentTextarea />
+      </div>
+    </div>
+  );
 }
 
 // 以下都是右邊區塊的元件
 export function CommentBlock() {
-    const [userComments,setUserComments] = useState([]);
-    
+  const [userComments, setUserComments] = useState([]);
+  const [replyingTo, setReplyingTo] = useState(null); // Record the user who is replying
 
-    async function GetComments(){
-        const morePid = localStorage.getItem('morePid');
+  async function GetComments() {
+    const morePid = localStorage.getItem("morePid");
 
-        try{
-            const response = await axios.get(`http://localhost:5000/getComment/${morePid}`);
-            setUserComments(response.data);
-            console.log(response.data);
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/getComment/${morePid}`
+      );
 
-        }
-        catch(error){
-            console.error("There was an error get comments!", error);
-        }
+      // FOrganize the reply information
+      const allComments = response.data; // ※ All comments
+      const mainComments = allComments.filter(
+        (comment) => !comment.parent_id // ※ Main comments
+      );
+      const replies = allComments.filter((comment) => comment.parent_id); // ※ replies
+
+      // Place the reply message under the corresponding main message
+      const commentsWithReplies = mainComments.map((mainComment) => ({
+        ...mainComment,
+        replies: replies.filter(
+          (reply) => reply.parent_id === mainComment.CommentId
+        ),
+      }));
+
+      //   console.log(allComments);
+      //   console.log(mainComments);
+      //   console.log(replies);
+      //   console.log(commentsWithReplies);
+
+      setUserComments(commentsWithReplies); // Update the userComments state.
+    } catch (error) {
+      console.error("There was an error get comments!", error);
     }
+  }
 
-    useEffect(() => {
-        GetComments();
-    }, []);
+  useEffect(() => {
+    GetComments();
+  }, []);
 
-    return(
-        <>
-        {userComments.map((userComments,i) => (
-        <div className="commentBlock">
-                <h3 className="userName">{userComments.name}:</h3>
-                <p className="comment">{userComments.comments}</p>
+  // Function to open the reply form
+  function openReplyForm(commentId) {
+    // If the clicked form is the same one, close it; otherwise, open a new reply form
+    setReplyingTo(replyingTo === commentId ? null : commentId);
+  }
+
+  function onReplySuccess() {
+    setReplyingTo(null); // Close the reply form
+    GetComments();
+  }
+
+  return (
+    <>
+      {userComments.map((userComment, i) => (
+        <div key={i}>
+          <div className="commentBlock">
+            <h3 className="userName">{userComment.name}:</h3>
+            <p className="comment">{userComment.comments}</p>
+          </div>
+          <div>
+            <button
+              className="reply"
+              onClick={() => openReplyForm(userComment.CommentId)}
+            >
+              {replyingTo === userComment.CommentId ? "取消回覆" : "回覆"}
+            </button>
+            <div>
+              <div className="commentTimeOuter">
+                <small className="commentTime">{userComment.created_at}</small>
+              </div>
+            </div>
+          </div>
+
+          {/* ====== replies ====== */}
+          {userComment.replies && userComment.replies.length > 0 && (
+            <div
+              className="repliesContainer"
+              style={{ marginLeft: "30px", marginTop: "10px" }}
+            >
+              {userComment.replies.map((reply, replyIndex) => (
+                <div key={replyIndex}>
+                  <div className="replyBlock">
+                    <h4 className="userName">{reply.name}</h4>
+                    <h4 className="replyName">{userComment.name}</h4>
+                    <p className="comment">{reply.comments}</p>
+                  </div>
+                  <div className="commentTimeOuter">
+                    <small className="commentTime">{reply.created_at}</small>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* ====== ===== ===== */}
+
+          {replyingTo === userComment.CommentId && (
+            <ReplyFromTextarea
+              parentCommentId={userComment.CommentId}
+              onSuccess={onReplySuccess}
+            />
+          )}
         </div>
-        ))}
-        </>
-    );
+      ))}
+    </>
+  );
 }
 
 export function CommentTextarea() {
-    const addComment = async(event) =>{
-        event.preventDefault();
-        const userId = localStorage.getItem('userId');
-        const morePid = localStorage.getItem('morePid');
+  const addComment = async (event) => {
+    event.preventDefault();
+    const userId = localStorage.getItem("userId");
+    const morePid = localStorage.getItem("morePid");
 
-        const formData = new FormData(event.target);
-        const comment = formData.get('comment');
+    const formData = new FormData(event.target);
+    const comment = formData.get("comment");
 
-        try{
-            const response = await fetch('http://localhost:5000/saveComment',{
-                method : 'POST',
-                headers : {'Content-Type' : 'application/json'},
-                body : JSON.stringify({userId,morePid,comment})
-            });
+    try {
+      const response = await fetch("http://localhost:5000/saveComment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, morePid, comment }),
+      });
 
-            const data = await response.json();
-            console.log(data);
-            
-            if(data.success){
-                window.location.reload();
-            }
-            else{
-                alert(`Add comment failed! ${data.error}`);
-            }
-        }
-        catch(error){
-            console.error('There was an error inserting current pet data!', error);
-        }
+      const data = await response.json();
+      //   console.log(data);
 
+      if (data.success) {
+        event.target.reset();
+        window.location.reload();
+      } else {
+        alert(`Add comment failed! ${data.error}`);
+      }
+    } catch (error) {
+      console.error("There was an error inserting current pet data!", error);
     }
+  };
 
-    return(
-        <form className="commentForm" onSubmit={addComment}>
-            <input className="commentInput" name="comment" type="text" placeholder="Comments.." autoComplete='off' maxLength="100" required></input>
-            <input className='sendBTN' type='submit' value='→'></input>
-        </form>
-    )
+  return (
+    <form className="commentForm" onSubmit={addComment}>
+      <input
+        className="commentInput"
+        name="comment"
+        type="text"
+        placeholder="Comments.."
+        autoComplete="off"
+        maxLength="100"
+        required
+      ></input>
+      <input className="sendBTN" type="submit" value="→"></input>
+    </form>
+  );
+}
+
+// increase reply form component.
+export function ReplyFromTextarea({ parentCommentId, onSuccess }) {
+  const addReply = async (event) => {
+    event.preventDefault();
+    const userId = localStorage.getItem("userId");
+    const morePid = localStorage.getItem("morePid");
+
+    const formData = new FormData(event.target);
+    const replyComment = formData.get("replyComment");
+
+    try {
+      const response = await fetch("http://localhost:5000/saveReply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          morePid,
+          parentCommentId,
+          replyComment,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        event.target.reset();
+        onSuccess(); // Call the onSuccess callback
+      } else {
+        alert(`Add reply failed! ${data.error}`);
+      }
+    } catch (error) {
+      console.error("There was an error inserting current pet data!", error);
+    }
+  };
+
+  return (
+    <form
+      className="replyForm"
+      onSubmit={addReply}
+      style={{ marginLeft: "20px", marginTop: "10px" }}
+    >
+      <input
+        className="commentInput"
+        name="replyComment"
+        type="text"
+        placeholder="回覆留言..."
+        autoComplete="off"
+        maxLength="100"
+        required
+      />
+      <input className="sendBTN" type="submit" value="→" />
+    </form>
+  );
 }

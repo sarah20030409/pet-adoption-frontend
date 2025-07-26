@@ -21,7 +21,7 @@ export default function Test() {
   return (
     <>
       <div className="App">
-        <h1>Wellcome, {message} !!</h1>
+        <h1>Wellcome, {message} !</h1>
       </div>
     </>
   );
