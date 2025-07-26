@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react";
 //useEffect use to fetch the backend API on the first render of the page.
 import axios from "axios";
 
-export default function Test(){
-    const [message, setmassage] = useState("");
+export default function Test() {
+  const [message, setmassage] = useState("");
 
   const fetchAppData = () => {
     axios
@@ -18,10 +18,11 @@ export default function Test(){
   };
   useEffect(fetchAppData, []);
 
-    
-    return(
-        <>
-        <div className="App"><h1>Wellcome, {message} !</h1></div>
-        </>
-    );
+  return (
+    <>
+      <div className="App">
+        <h1>Wellcome, {message} !!</h1>
+      </div>
+    </>
+  );
 }
