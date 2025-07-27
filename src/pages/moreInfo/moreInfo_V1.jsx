@@ -106,26 +106,33 @@ export function CommentBlock() {
   const [userComments, setUserComments] = useState([]);
   const [replyingTo, setReplyingTo] = useState(null); // Record the user who is replying
 
-  // Function to build the comment trees 🌱
-  function buildCommentTree(comments, parentId = null, parent = null) {
-    return comments
-      .filter((comment) => comment.parent_id === parentId) // Filter comments by parent_id
-      .map((comment) => ({
-        ...comment,
-        parent,
-        children: buildCommentTree(comments, comment.CommentId, comment), // Recursive call ↑ ↑
-      }));
-  }
-
   async function GetComments() {
     const morePid = localStorage.getItem("morePid");
+
     try {
       const response = await axios.get(
         `http://localhost:5000/getComment/${morePid}`
       );
 
-      const commentsTree = buildCommentTree(response.data); // 🌳
-      setUserComments(commentsTree);
+      // Organize the reply information
+
+      // ※ All comments
+      const allComments = response.data;
+      // ※ Main comments
+      const mainComments = allComments.filter((comment) => !comment.parent_id);
+      // ※ replies of main comments
+      const replies = allComments.filter((comment) => comment.parent_id);
+
+      // Place the reply message under the corresponding main message
+
+      const commentsWithReplies = mainComments.map((mainComment) => ({
+        ...mainComment,
+        replies: replies.filter(
+          (reply) => reply.parent_id === mainComment.CommentId
+        ),
+      }));
+
+      setUserComments(commentsWithReplies); // Update the userComments state.
     } catch (error) {
       console.error("There was an error get comments!", error);
     }
@@ -137,7 +144,7 @@ export function CommentBlock() {
 
   // Function to open the reply form
   function openReplyForm(commentId) {
-    // If the clicked form is the same one, close it; otherwise, open a new reply form.
+    // If the clicked form is the same one, close it; otherwise, open a new reply form
     setReplyingTo(replyingTo === commentId ? null : commentId);
   }
 
@@ -146,63 +153,70 @@ export function CommentBlock() {
     GetComments();
   }
 
-  // Recursive function to render the comment tree.
-  function renderComment(comment, depth) {
-    const marginLeft = `${depth * 20}px`;
-    const maxDepth = 3;
-    // Set the maximum depth of the comment tree (0 = main comment, 1 = reply, 2 = reply of reply)
-
-    return (
-      <>
-        <div key={comment.CommentId} style={{ marginLeft }}>
-          {/* ====== comments content ====== */}
-          {/* Main comments or replies */}
-          <div className={depth === 0 ? "commentBlock" : "replyBlock"}>
-            <h3 className="userName">{comment.name}</h3>
-            {depth === 0 ? null : (
-              <h3 className="replyName">{comment.parent.name}</h3>
-            )}
-            <p className="comment">{comment.comments}</p>
+  return (
+    <>
+      {userComments.map((userComment, i) => (
+        <div key={i}>
+          <div className="commentBlock">
+            <h3 className="userName">{userComment.name}:</h3>
+            <p className="comment">{userComment.comments}</p>
           </div>
           <div>
-            {/* ====== reply button ====== */}
-            {depth < maxDepth && (
-              <button
-                className="reply"
-                onClick={() => openReplyForm(comment.CommentId)}
-              >
-                {replyingTo === comment.CommentId ? "取消回覆" : "回覆"}
-              </button>
-            )}
-
-            {/* ====== comment time ====== */}
+            <button
+              className="reply"
+              onClick={() => openReplyForm(userComment.CommentId)}
+            >
+              {replyingTo === userComment.CommentId ? "取消回覆" : "回覆"}
+            </button>
             <div className="commentTimeOuter">
-              <small className="commentTime">{comment.created_at}</small>
+              <small className="commentTime">{userComment.created_at}</small>
             </div>
           </div>
 
-          {/* ====== reply form ====== */}
-          {replyingTo === comment.CommentId && (
+          {/* ====== replies ====== */}
+          {userComment.replies && userComment.replies.length > 0 && (
+            <div
+              className="repliesContainer"
+              style={{ marginLeft: "30px", marginTop: "10px" }}
+            >
+              {userComment.replies.map((reply, replyIndex) => (
+                <div key={replyIndex}>
+                  <div className="replyBlock">
+                    <h4 className="userName">{reply.name}</h4>
+                    <h4 className="replyName">{userComment.name}</h4>
+                    <p className="comment">{reply.comments}</p>
+                  </div>
+                  <button
+                    className="reply"
+                    onClick={() => openReplyForm(reply.CommentId)}
+                  >
+                    {replyingTo === reply.CommentId ? "取消回覆" : "回覆"}
+                  </button>
+                  <div className="commentTimeOuter">
+                    <small className="commentTime">{reply.created_at}</small>
+                  </div>
+                  {replyingTo === reply.CommentId && (
+                    <ReplyFromTextarea
+                      parentCommentId={reply.CommentId}
+                      onSuccess={onReplySuccess}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          {/* ====== ===== ===== */}
+
+          {replyingTo === userComment.CommentId && (
             <ReplyFromTextarea
-              parentCommentId={comment.CommentId}
+              parentCommentId={userComment.CommentId}
               onSuccess={onReplySuccess}
             />
           )}
-
-          {/* Recursively render child comments，if child comments exist，render the child comments */}
-          {comment.children && comment.children.length > 0 && (
-            <div className="childrenContainer" style={{ marginTop: "10px" }}>
-              {comment.children.map((childComment) =>
-                renderComment(childComment, depth + 1)
-              )}
-            </div>
-          )}
         </div>
-      </>
-    );
-  }
-  /* ====== render the comment tree ====== */
-  return <>{userComments.map((comment) => renderComment(comment, 0))}</>;
+      ))}
+    </>
+  );
 }
 
 export function CommentTextarea() {
