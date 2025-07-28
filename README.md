@@ -40,19 +40,14 @@ This project uses Docker to simplify deployment. It builds a production-ready Re
 
 ### Frontend
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-
-2. Install dependencies:
+1. Install dependencies:
     ```bash
     npm install
     ```
 
-3. Start the development server:
+2. Start the development server:
     ```bash
     npm start
     ```
-4. Visit:  
+3. Visit:  
    [http://localhost:3000](http://localhost:3000)
