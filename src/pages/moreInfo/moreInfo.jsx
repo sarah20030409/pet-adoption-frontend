@@ -214,7 +214,7 @@ export function CommentTextarea() {
     const formData = new FormData(event.target);
     const comment = formData.get("comment");
 
-    if (!comment || comment.trim() === "") {
+    if (!comment || comment.trim() === "" || comment.trim() === " ") {
       alert("評論內容不能為空白！");
       return;
     }
@@ -269,7 +269,7 @@ export function ReplyFromTextarea({ parentCommentId, onSuccess }) {
     const formData = new FormData(event.target);
     const replyComment = formData.get("replyComment");
 
-    if (!replyComment || replyComment.trim() === "") {
+    if (!replyComment || replyComment.trim() === "" || replyComment === " ") {
       alert("評論內容不能為空白！");
       return;
     }
