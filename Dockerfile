@@ -27,8 +27,8 @@ COPY --from=0 /app/build /usr/share/nginx/html
 # Copy the Nginx configuration file to the container
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port 80 to allow external access to the app
-EXPOSE 80
+# Expose port 3000 to allow external access to the app
+EXPOSE 3000
 
 # Start Nginx in the foreground (required so Docker doesn't exit)
 CMD ["nginx", "-g", "daemon off;"]
