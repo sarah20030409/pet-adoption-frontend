@@ -18,13 +18,16 @@ export default function Login() {
     const password = formData.get("password");
 
     try {
-      const reaponse = await fetch("http://localhost:5000/login", {
-        method: "POST",
-        body: JSON.stringify({ name, password }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const reaponse = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/login`,
+        {
+          method: "POST",
+          body: JSON.stringify({ name, password }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const data = await reaponse.json();
       handlesLoginResponse(reaponse, data);
@@ -36,8 +39,8 @@ export default function Login() {
   function handlesLoginResponse(response, data) {
     console.log(data.name, data.oId);
     if (response.ok) {
-      const userName = localStorage.setItem("userName", data.name);
-      const userId = localStorage.setItem("userId", data.oId);
+      localStorage.setItem("userName", data.name);
+      localStorage.setItem("userId", data.oId);
       goAdopt();
     } else {
       alert(`Login failed! ${data.error}`);

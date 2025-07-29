@@ -31,7 +31,7 @@ export function Left_Info() {
   async function getCurrnetPid() {
     try {
       const response = await axios.get(
-        `http://localhost:5000/currentPet/${morePid}`
+        `${process.env.REACT_APP_API_BASE_URL}/currentPet/${morePid}`
       );
       setmPetInfo(response.data[0]);
     } catch (error) {
@@ -56,7 +56,7 @@ export function Left_Info() {
             {/* <img className="InfoImg" src={SampleImg} /> */}
             <img
               className="InfoImg"
-              src={`http://localhost:5000/${mPetInfo.petImage}`}
+              src={`${process.env.REACT_APP_API_BASE_URL}/${mPetInfo.petImage}`}
               alt={mPetInfo.name}
             />
           </div>
@@ -111,7 +111,7 @@ export function CommentBlock() {
 
     try {
       const response = await axios.get(
-        `http://localhost:5000/getComment/${morePid}`
+        `${process.env.REACT_APP_API_BASE_URL}/getComment/${morePid}`
       );
 
       // Organize the reply information
@@ -229,11 +229,14 @@ export function CommentTextarea() {
     const comment = formData.get("comment");
 
     try {
-      const response = await fetch("http://localhost:5000/saveComment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, morePid, comment }),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/saveComment`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, morePid, comment }),
+        }
+      );
 
       const data = await response.json();
       //   console.log(data);
@@ -276,16 +279,19 @@ export function ReplyFromTextarea({ parentCommentId, onSuccess }) {
     const replyComment = formData.get("replyComment");
 
     try {
-      const response = await fetch("http://localhost:5000/saveReply", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          morePid,
-          parentCommentId,
-          replyComment,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/saveReply`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            morePid,
+            parentCommentId,
+            replyComment,
+          }),
+        }
+      );
 
       const data = await response.json();
 

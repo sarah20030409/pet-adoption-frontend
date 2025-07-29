@@ -21,9 +21,11 @@ RUN npm run build
 # nginx : https://ithelp.ithome.com.tw/m/articles/10241354
 FROM nginx:alpine
 
-
 # Copy the build output from the previous stage into the Nginx public directory
 COPY --from=0 /app/build /usr/share/nginx/html
+
+# Copy the Nginx configuration file to the container
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80 to allow external access to the app
 EXPOSE 80

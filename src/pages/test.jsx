@@ -8,7 +8,7 @@ export default function Test() {
 
   const fetchAppData = () => {
     axios
-      .get("http://localhost:5000/owner/all") //axios get the data from the backend,returns a promise
+      .get(`${process.env.REACT_APP_API_BASE_URL}/owner/all`) //axios get the data from the backend,returns a promise
       .then((response) => {
         setmassage(response.data[0].name);
       })
